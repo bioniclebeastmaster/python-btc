@@ -5,6 +5,14 @@ import argparse
 from pathlib import Path
 
 
+config_obj = configparser.ConfigParser()
+config_obj.read("config.ini")
+
+# getting the connection string and ticker info from config file
+db_str = config_obj["mysql"]["connection_str"]
+btc_info = config_obj["btc"]
+
+
 def read_csv(file_path):
     df = pd.read_csv(
         file_path,
@@ -29,10 +37,10 @@ def read_csv(file_path):
 
 
 def write_df_to_db(df):
-    table_name = "btcusdt_1m_klines"
+    table_name = btc_info["table_name"]
 
     engine = create_engine(
-        "mysql+pymysql://btc_user:btc_db_user_pwd@localhost:3306/btc_db",
+        db_str,
         pool_recycle=3600,
     )
 

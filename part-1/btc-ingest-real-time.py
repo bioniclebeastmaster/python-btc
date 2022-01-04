@@ -1,7 +1,15 @@
 from binance.client import Client
 from binance import ThreadedWebsocketManager
 import datetime
+import configparser
 from sqlalchemy import MetaData, create_engine
+
+config_obj = configparser.ConfigParser()
+config_obj.read("config.ini")
+
+# getting the connection string and ticker info from config file
+db_str = config_obj["mysql"]["connection_str"]
+btc_info = config_obj["btc"]
 
 
 def btc_process_1m_kline(msg):
@@ -11,7 +19,6 @@ def btc_process_1m_kline(msg):
 
     # check if message has errors; log the error if it happens
     if msg["e"] != "error":
-
         # check if kline is closed
         if msg["k"]["x"] == True:
             # process the message, convert epoch time to timestamp
@@ -32,14 +39,13 @@ def btc_process_1m_kline(msg):
             btc_data["taker_buy_quote_asset_volume"] = msg["k"]["Q"]
             write_data_to_db(btc_data)
     else:
+        # TODO: add logging to save errors
         print(msg)
 
 
 def write_data_to_db(data_dict):
-    table_name = "btcusdt_1m_klines"
-    engine = create_engine(
-        "mysql+pymysql://btc_user:btc_db_user_pwd@localhost:3306/btc_db"
-    )
+    table_name = btc_info["table_name"]
+    engine = create_engine(db_str)
     # TODO: put the engine creation and connection in outer scope so that
     # a new session is not created each time a message is written
     with engine.begin() as connection:
@@ -57,7 +63,7 @@ def main():
     # subscribe to a stream and process the messages into the data base using the callback function
     bsm.start_kline_socket(
         callback=btc_process_1m_kline,
-        symbol="BTCUSDT",
+        symbol=btc_info["ticker_symbol"],
         interval=Client.KLINE_INTERVAL_1MINUTE,
     )
 

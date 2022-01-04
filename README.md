@@ -54,7 +54,7 @@ For real time data, we can use the python Binance client package: https://python
 In particular, the Websocket feature allows real time reading of data.
 
 ### Part 2: Analyzing ticker data 
-
+Perform analysis on the ingested data to get the 5 hour and 10 hour moving average using pandas library and matplotlib to create a diagram for the last available  day of data.
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
@@ -84,12 +84,17 @@ _Below is an example of how you can instruct your audience on installing and set
    ```sh
    pip install -r requirements.txt
    ```
-3. Create a database and user in MySQL and enter the credentials into `config.ini` under mysql section. E.g.
+3. Create a database and user in MySQL and enter the credentials into `config.ini` under mysql section. Also fill in the ticker symbol to be used and change table name if needed E.g.
    ```ini
     [mysql]
-    host = localhost
-    user = btc_user
+    connection_str = mysql+pymysql://btc_user:btc_db_user_pwd@localhost:3306/btc_db
+
+    [btc]
+    ticker_symbol = BTCUSDT
+    table_name = btcusdt_1m_klines
+
    ```
+5. Run the sql that creates the table `part-1/ddl_statements.sql` in the database. Make sure to update the table name with what is in `config.ini` if needed.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -98,10 +103,21 @@ _Below is an example of how you can instruct your audience on installing and set
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+To run the historic ingestion script, you can specify a directory to use for reading the data-- otherwise, the data folder in the project is default:
+``` sh
+python part-1/btc-ingest-historic.py --data_dir "<data directory path>"
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+```
 
+To run the real time data ingestion:
+``` sh
+python part-1/btc-ingest-real-time.py
+```
+
+To run the data analysis and output a diagram of moving averages and close prices for the last day of data:
+``` sh
+python part-2/analysis.py
+```
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
